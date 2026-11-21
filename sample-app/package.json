@@ -1,0 +1,10 @@
+{
+  "name": "nobus-hackathon-sample",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hello world to prove a Nobus Cloud deploy works",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
