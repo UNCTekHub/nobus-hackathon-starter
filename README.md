@@ -14,7 +14,7 @@ One command takes a fresh Nobus server to a live URL for your project.
 On the server:
 
 ```bash
-git clone [STARTER-KIT-REPO-URL] nobus-starter
+git clone https://github.com/UNCTekHub/nobus-hackathon-starter.git nobus-starter
 cd nobus-starter && chmod +x deploy.sh
 ./deploy.sh https://github.com/your-team/your-repo.git 3000
 ```
