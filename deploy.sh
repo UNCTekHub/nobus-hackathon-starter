@@ -1,26 +1,30 @@
 #!/usr/bin/env bash
 # Nobus Cloud hackathon starter: one command from a fresh Ubuntu 22.04 server to a live URL.
 #
-# Usage (on your Nobus server, logged in as ubuntu):
-#   ./deploy.sh <your-repo-url> [app-port] [your-domain] [your-email]
+# Usage (on your Nobus server, logged in as ubuntu, from the kit folder):
+#   ./deploy.sh sample|<your-repo-url> [app-port] [your-domain] [your-email]
 #
 # Examples:
-#   ./deploy.sh https://github.com/team07/app.git
+#   ./deploy.sh sample                                   # the kit's sample app
+#   ./deploy.sh sample 3000 team07.com.ng you@example.com  # sample app with HTTPS
+#   ./deploy.sh https://github.com/team07/app.git        # your own code
 #   ./deploy.sh https://github.com/team07/app.git 3000 team07.com.ng you@example.com
 #
 # Run it again after every git push to redeploy.
 
 set -euo pipefail
 
-REPO="${1:-}"
+REPO="${1:-sample}"
 PORT="${2:-3000}"
 DOMAIN="${3:-}"
 EMAIL="${4:-}"
-APP_DIR="$HOME/app"
+KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SAMPLE_DIR="$KIT_DIR/sample-app"
 
-if [ -z "$REPO" ]; then
-  echo "Usage: ./deploy.sh <your-repo-url> [app-port] [your-domain] [your-email]"
-  exit 1
+if [ "$REPO" = "sample" ]; then
+  APP_DIR="$SAMPLE_DIR"
+else
+  APP_DIR="$HOME/app"
 fi
 
 step() { printf '\n==> %s\n' "$1"; }
@@ -33,10 +37,18 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 step "2/5 Getting your code"
-if [ -d "$APP_DIR/.git" ]; then
-  git -C "$APP_DIR" pull --ff-only
+if [ "$REPO" = "sample" ]; then
+  echo "Using the starter kit's sample app in $SAMPLE_DIR"
 else
-  git clone "$REPO" "$APP_DIR"
+  # Moving from the sample app to your own code: stop the sample so port $PORT is free.
+  if command -v docker >/dev/null 2>&1 && [ -f "$SAMPLE_DIR/docker-compose.yml" ]; then
+    sudo docker compose -f "$SAMPLE_DIR/docker-compose.yml" down >/dev/null 2>&1 || true
+  fi
+  if [ -d "$APP_DIR/.git" ]; then
+    git -C "$APP_DIR" pull --ff-only
+  else
+    git clone "$REPO" "$APP_DIR"
+  fi
 fi
 cd "$APP_DIR"
 if [ ! -f .env ] && [ -f .env.example ]; then
